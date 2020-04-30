@@ -16,18 +16,20 @@ import (
 type PingOpts struct {
 	PingTimeout     time.Duration
 	ResolverTimeout time.Duration
+	Bind4           string
 	Interval        func() time.Duration
 	PayloadSize     uint16
-	Bind4           string
+	StatBufferSize  int
 	Count           int
 }
 
 var DefaultPingOpts = &PingOpts{
 	PingTimeout:     3 * time.Second,
+	Bind4:           "0.0.0.0",
 	ResolverTimeout: 1500 * time.Millisecond,
 	Interval:        func() time.Duration { return time.Duration(rand.Int63n(300)) * time.Millisecond },
 	PayloadSize:     56,
-	Bind4:           "0.0.0.0",
+	StatBufferSize:  50,
 	Count:           10,
 }
 
@@ -77,7 +79,7 @@ func Ping(opts *PingOpts, hosts ...string) (map[string]PingStat, error) {
 			dst := destination{
 				host:    host,
 				remote:  &ipaddr,
-				history: &history{results: make([]time.Duration, 0)},
+				history: &history{results: make([]time.Duration, opts.StatBufferSize)},
 			}
 			dests = append(dests, &dst)
 		}
