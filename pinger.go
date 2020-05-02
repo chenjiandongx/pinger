@@ -15,25 +15,28 @@ import (
 
 type PingOpts struct {
 	PingTimeout     time.Duration
+	PingCount       int
 	ResolverTimeout time.Duration
 	Bind4           string
 	Interval        func() time.Duration
 	PayloadSize     uint16
 	StatBufferSize  int
-	Count           int
+	MaxCurrency     int
 }
 
 var DefaultPingOpts = &PingOpts{
 	PingTimeout:     3 * time.Second,
+	PingCount:       10,
 	Bind4:           "0.0.0.0",
 	ResolverTimeout: 1500 * time.Millisecond,
 	Interval:        func() time.Duration { return time.Duration(rand.Int63n(300)) * time.Millisecond },
 	PayloadSize:     56,
 	StatBufferSize:  50,
-	Count:           10,
+	MaxCurrency:     10,
 }
 
 type PingStat struct {
+	Host    string
 	PktSent int
 	PktLoss float64
 	Mean    time.Duration
@@ -42,17 +45,18 @@ type PingStat struct {
 	Worst   time.Duration
 }
 
-func Ping(opts *PingOpts, hosts ...string) (map[string]PingStat, error) {
+func Ping(opts *PingOpts, hosts ...string) ([]PingStat, error) {
 	if opts == nil {
 		opts = DefaultPingOpts
 	}
 
 	stats := make(map[string]PingStat)
+	ordered := make([]PingStat, 0)
 
 	pinger := &ping.Pinger{}
 	instance, err := ping.New(opts.Bind4, "::")
 	if err != nil {
-		return stats, fmt.Errorf("init pinger error: %s", err.Error())
+		return ordered, fmt.Errorf("init pinger error: %s", err.Error())
 	}
 
 	if instance.PayloadSize() != opts.PayloadSize {
@@ -87,23 +91,35 @@ func Ping(opts *PingOpts, hosts ...string) (map[string]PingStat, error) {
 
 	mux := sync.Mutex{}
 	wg := sync.WaitGroup{}
-	for c := 0; c < opts.Count; c++ {
-		for _, d := range dests {
+
+	sema := make(chan struct{}, opts.MaxCurrency)
+	for c := 0; c < opts.PingCount; c++ {
+		for _, dest := range dests {
+			sema <- struct{}{}
 			wg.Add(1)
 			go func(d *destination) {
-				defer wg.Done()
+				defer func() {
+					wg.Done()
+					<-sema
+				}()
 				d.ping(pinger, opts.PingTimeout)
 
 				mux.Lock()
-				stats[d.host] = d.compute()
+				stat := d.compute()
+				stat.Host = d.host
+				stats[d.host] = stat
 				mux.Unlock()
-			}(d)
+			}(dest)
 		}
 		wg.Wait()
 		time.Sleep(opts.Interval())
 	}
 
-	return stats, nil
+	for _, host := range hosts {
+		ordered = append(ordered, stats[host])
+	}
+
+	return ordered, nil
 }
 
 type destination struct {
@@ -130,11 +146,11 @@ type history struct {
 
 func (s *history) addResult(rtt time.Duration, err error) {
 	s.mtx.Lock()
-	if err == nil {
+	if err != nil {
+		s.lost++
+	} else {
 		s.results[s.received%len(s.results)] = rtt
 		s.received++
-	} else {
-		s.lost++
 	}
 	s.mtx.Unlock()
 }
