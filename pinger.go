@@ -2,39 +2,20 @@ package pinger
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/digineo/go-ping"
-	"github.com/sirupsen/logrus"
 )
 
-type PingOpts struct {
-	PingTimeout     time.Duration
-	PingCount       int
-	ResolverTimeout time.Duration
-	Bind4           string
-	Interval        func() time.Duration
-	PayloadSize     uint16
-	StatBufferSize  int
-	MaxCurrency     int
-}
+var (
+	defaultInterval = func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond }
+	defaultStatsBuf = 60
+	zeroDur         = time.Duration(0)
+)
 
-var DefaultPingOpts = &PingOpts{
-	PingTimeout:     3 * time.Second,
-	PingCount:       10,
-	Bind4:           "0.0.0.0",
-	ResolverTimeout: 1500 * time.Millisecond,
-	Interval:        func() time.Duration { return time.Duration(rand.Int63n(300)) * time.Millisecond },
-	PayloadSize:     56,
-	StatBufferSize:  50,
-	MaxCurrency:     10,
-}
-
+// PingStat struct is used to record the ping result.
 type PingStat struct {
 	Host    string
 	PktSent int
@@ -45,96 +26,10 @@ type PingStat struct {
 	Worst   time.Duration
 }
 
-func Ping(opts *PingOpts, hosts ...string) ([]PingStat, error) {
-	if opts == nil {
-		opts = DefaultPingOpts
-	}
-
-	stats := make(map[string]PingStat)
-	ordered := make([]PingStat, 0)
-
-	pinger := &ping.Pinger{}
-	instance, err := ping.New(opts.Bind4, "::")
-	if err != nil {
-		return ordered, fmt.Errorf("init pinger error: %s", err.Error())
-	}
-
-	if instance.PayloadSize() != opts.PayloadSize {
-		instance.SetPayloadSize(opts.PayloadSize)
-	}
-	pinger = instance
-	defer pinger.Close()
-
-	dests := make([]*destination, 0)
-	for _, host := range hosts {
-		remotes, err := resolve(host, opts.ResolverTimeout)
-		if err != nil {
-			logrus.Warnf("resolve address error:+%v\n", err)
-			continue
-		}
-
-		for _, remote := range remotes {
-			// only ipv4
-			if remote.IP.To4() == nil {
-				continue
-			}
-
-			ipaddr := remote // need to create a copy
-			dst := destination{
-				host:    host,
-				remote:  &ipaddr,
-				history: &history{results: make([]time.Duration, opts.StatBufferSize)},
-			}
-			dests = append(dests, &dst)
-		}
-	}
-
-	mux := sync.Mutex{}
-	wg := sync.WaitGroup{}
-
-	sema := make(chan struct{}, opts.MaxCurrency)
-	for c := 0; c < opts.PingCount; c++ {
-		for _, dest := range dests {
-			sema <- struct{}{}
-			wg.Add(1)
-			go func(d *destination) {
-				defer func() {
-					wg.Done()
-					<-sema
-				}()
-				d.ping(pinger, opts.PingTimeout)
-
-				mux.Lock()
-				stat := d.compute()
-				stat.Host = d.host
-				stats[d.host] = stat
-				mux.Unlock()
-			}(dest)
-		}
-		wg.Wait()
-		time.Sleep(opts.Interval())
-	}
-
-	for _, host := range hosts {
-		ordered = append(ordered, stats[host])
-	}
-
-	return ordered, nil
-}
-
 type destination struct {
-	host    string
-	remote  *net.IPAddr
-	display string
+	host   string
+	remote *net.IPAddr
 	*history
-}
-
-func (u *destination) ping(pinger *ping.Pinger, timeout time.Duration) {
-	rtt, err := pinger.Ping(u.remote, timeout)
-	if err != nil {
-		logrus.Warnf("ping host[%s] error: %+v", u.host, err)
-	}
-	u.addResult(rtt, err)
 }
 
 type history struct {
@@ -208,4 +103,54 @@ func resolve(addr string, timeout time.Duration) ([]net.IPAddr, error) {
 	defer cancel()
 
 	return net.DefaultResolver.LookupIPAddr(ctx, addr)
+}
+
+func sortHosts(stats map[string]PingStat, hosts ...string) []PingStat {
+	ordered := make([]PingStat, len(hosts))
+	for i, host := range hosts {
+		ordered[i] = stats[host]
+	}
+	return ordered
+}
+
+type calcStatsReq struct {
+	maxConcurrency int
+	pingCount      int
+	dest           []*destination
+	ping           func(d *destination, args ...interface{})
+	setInterval    func() time.Duration
+	args           interface{}
+}
+
+func calculateStats(csr calcStatsReq) map[string]PingStat {
+	stats := make(map[string]PingStat)
+
+	mux := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	sema := make(chan struct{}, csr.maxConcurrency)
+
+	for c := 0; c < csr.pingCount; c++ {
+		for _, dest := range csr.dest {
+			sema <- struct{}{}
+			wg.Add(1)
+			go func(d *destination) {
+				defer func() {
+					wg.Done()
+					<-sema
+				}()
+
+				csr.ping(d, csr.args)
+
+				mux.Lock()
+				stat := d.compute()
+				stat.Host = d.host
+				stats[d.host] = stat
+				mux.Unlock()
+			}(dest)
+		}
+		wg.Wait()
+		time.Sleep(csr.setInterval())
+	}
+
+	return stats
 }
