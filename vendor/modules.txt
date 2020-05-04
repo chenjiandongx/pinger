@@ -1,11 +1,17 @@
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/digineo/go-logwrap v0.0.0-20181106161722-a178c58ea3f0
 github.com/digineo/go-logwrap
 # github.com/digineo/go-ping v1.0.0
 github.com/digineo/go-ping
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.5.0
 github.com/sirupsen/logrus
+# github.com/stretchr/testify v1.2.2
+github.com/stretchr/testify/assert
 # golang.org/x/net v0.0.0-20181220203305-927f97764cc3
 golang.org/x/net/bpf
 golang.org/x/net/icmp
