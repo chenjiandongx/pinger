@@ -1,8 +1,6 @@
 sudo: required
 language: go
 go:
-  - 1.11.x
-  - 1.12.x
   - 1.13.x
 install:
   - # Do nothing. This is needed to prevent default install action
@@ -10,5 +8,5 @@ install:
 script:
   - go get -t -v ./...
   - diff -u <(echo -n) <(go fmt ./...)
-  - go tool vet .
+  - go vet .
   - sudo `which go` test -v -race ./...
