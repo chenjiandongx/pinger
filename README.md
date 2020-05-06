@@ -30,14 +30,14 @@ import (
 )
 
 func main() {
-	// IMMP
+	// ICMP
 	stats, err := pinger.ICMPPing(nil, "qq.com", "baidu.com", "114.114.114.114")
 
 	// TCP
 	// stats, err := pinger.TCPPing(nil, "baidu.com:80", "qq.com:80", "qq.com:443", "baidu.com:443")
 
-	// HTTP
-	// stats, err := pinger.HTTPPing(nil, "baidu.com", "qq.com", "huya.com")
+	// HTTP/HTTPS
+	// stats, err := pinger.HTTPPing(nil, "http://baidu.com", "https://baidu.com", "http://39.156.69.79")
 	if err != nil {
 		panic(err)
 	}
