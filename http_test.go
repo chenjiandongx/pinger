@@ -22,5 +22,5 @@ func TestInvalidHTTPPing(t *testing.T) {
 	stats, err := HTTPPing(opts, hosts...)
 	assert.NoError(t, err)
 	assert.Len(t, stats, 1)
-	assert.Equal(t, stats[0].PktLoss, float64(1))
+	assert.Equal(t, stats[0].PktLossRate, float64(1))
 }

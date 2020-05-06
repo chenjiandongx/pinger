@@ -15,13 +15,13 @@ var (
 
 // PingStat struct is used to record the ping result.
 type PingStat struct {
-	Host    string
-	PktSent int
-	PktLoss float64
-	Mean    time.Duration
-	Last    time.Duration
-	Best    time.Duration
-	Worst   time.Duration
+	Host        string
+	PktSent     int
+	PktLossRate float64
+	Mean        time.Duration
+	Last        time.Duration
+	Best        time.Duration
+	Worst       time.Duration
 }
 
 type destination struct {
@@ -54,7 +54,7 @@ func (h *history) compute() (st PingStat) {
 
 	if h.received == 0 {
 		if h.lost > 0 {
-			st.PktLoss = 1.0
+			st.PktLossRate = 1.0
 		}
 		return
 	}
@@ -70,7 +70,7 @@ func (h *history) compute() (st PingStat) {
 		size = h.received
 	}
 
-	st.PktLoss = float64(h.lost) / float64(h.received+h.lost)
+	st.PktLossRate = float64(h.lost) / float64(h.received+h.lost)
 	st.Best, st.Worst = collection[0], collection[0]
 
 	total := time.Duration(0)

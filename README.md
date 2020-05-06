@@ -48,9 +48,9 @@ func main() {
 }
 
 // output
-{Host:qq.com PktSent:10 PktLoss:0 Mean:42.858058ms Last:39.66054ms Best:38.031497ms Worst:71.050511ms}
-{Host:baidu.com PktSent:10 PktLoss:0 Mean:45.834938ms Last:44.408987ms Best:40.155878ms Worst:75.480914ms}
-{Host:114.114.114.114 PktSent:10 PktLoss:0 Mean:10.953486ms Last:6.618554ms Best:5.407619ms Worst:38.53662ms}
+{Host:qq.com PktSent:10 PktLossRate:0 Mean:42.858058ms Last:39.66054ms Best:38.031497ms Worst:71.050511ms}
+{Host:baidu.com PktSent:10 PktLossRate:0 Mean:45.834938ms Last:44.408987ms Best:40.155878ms Worst:75.480914ms}
+{Host:114.114.114.114 PktSent:10 PktLossRate:0 Mean:10.953486ms Last:6.618554ms Best:5.407619ms Worst:38.53662ms}
 ```
 
 ### 📃 License
