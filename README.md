@@ -2,7 +2,7 @@
 
 > 📌 A portable ping library written in Go.
 
-Pinger is a library used to evaluate the quality of services with ICMP/TCP/HTTP protocol.
+Pinger is a library used to evaluate the quality of services in ICMP/TCP/HTTP protocol.
 
 [![GoDoc](https://godoc.org/github.com/chenjiandongx/pinger?status.svg)](https://godoc.org/github.com/chenjiandongx/pinger)
 [![Travis](https://travis-ci.org/chenjiandongx/pinger.svg?branch=master)](https://travis-ci.org/chenjiandongx/pinger)
@@ -18,7 +18,7 @@ $ go get -u github.com/chenjiangdongx/pinger
 
 ### 📝 Usage
 
-> For more information, please refer to [godoc](https://godoc.org/github.com/chenjiandongx/pinger).
+> Here is an example and for more information, please refer to [godoc](https://godoc.org/github.com/chenjiandongx/pinger).
 
 ```golang
 package main
