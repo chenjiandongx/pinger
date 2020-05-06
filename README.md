@@ -1,6 +1,6 @@
 # Pinger
 
-> A portable ping library written in Go.
+> 📌 A portable ping library written in Go.
 
 Pinger is a library used to evaluate the quality of services with ICMP/TCP/HTTP protocol.
 
