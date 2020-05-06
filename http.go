@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"time"
@@ -37,7 +38,7 @@ var DefaultHTTPPingOpts = &HTTPPingOpts{
 	Method:         http.MethodGet,
 	Body:           nil,
 	Headers:        nil,
-	Interval:       defaultInterval,
+	Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
 	MaxConcurrency: 10,
 }
 

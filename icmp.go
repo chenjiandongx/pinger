@@ -2,6 +2,7 @@ package pinger
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/digineo/go-ping"
@@ -32,7 +33,7 @@ var DefaultICMPPingOpts = &ICMPPingOpts{
 	PingTimeout:     3 * time.Second,
 	PingCount:       10,
 	MaxConcurrency:  10,
-	Interval:        defaultInterval,
+	Interval:        func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
 	Bind4:           "0.0.0.0",
 	ResolverTimeout: 1500 * time.Millisecond,
 	PayloadSize:     56,

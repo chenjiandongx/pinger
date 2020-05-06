@@ -1,6 +1,7 @@
 package pinger
 
 import (
+	"math/rand"
 	"net"
 	"time"
 
@@ -23,7 +24,7 @@ type TCPPingOpts struct {
 var DefaultTCPPingOpts = &TCPPingOpts{
 	PingTimeout:    3 * time.Second,
 	PingCount:      10,
-	Interval:       defaultInterval,
+	Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
 	MaxConcurrency: 10,
 }
 

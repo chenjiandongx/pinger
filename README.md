@@ -18,7 +18,7 @@ $ go get -u github.com/chenjiangdongx/pinger
 
 ### 📝 Usage
 
-> Here is an example and for more information, please refer to [godoc](https://godoc.org/github.com/chenjiandongx/pinger).
+> Here is an example. For more information, please refer to [godoc](https://godoc.org/github.com/chenjiandongx/pinger).
 
 ```golang
 package main

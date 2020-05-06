@@ -2,7 +2,6 @@ package pinger
 
 import (
 	"context"
-	"math/rand"
 	"net"
 	"strings"
 	"sync"
@@ -10,7 +9,6 @@ import (
 )
 
 var (
-	defaultInterval = func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond }
 	defaultStatsBuf = 60
 	zeroDur         = time.Duration(0)
 )
