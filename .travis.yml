@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 language: go
 go:
   - 1.11.x
@@ -9,6 +9,6 @@ install:
   - # "go get -t -v ./..." from happening here (we want it to happen inside script step).
 script:
   - go get -t -v ./...
-  - diff -u <(echo -n) <(gofmt -d -s .)
+  - diff -u <(echo -n) <(go fmt ./...)
   - go tool vet .
-  - go test -v -race ./...
+  - sudo go test -v -race ./...
