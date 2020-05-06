@@ -4,6 +4,9 @@
 
 Pinger is a library used to evaluate the quality of services with ICMP/TCP/HTTP protocol.
 
+[![GoDoc](https://godoc.org/github.com/chenjiandongx/pinger?status.svg)](https://godoc.org/github.com/chenjiandongx/pinger)
+[![Go Report Card](https://goreportcard.com/badge/github.com/chenjiandongx/pinger)](https://goreportcard.com/report/github.com/chenjiandongx/pinger)
+
 ### 🔰 Installation
 
 ```shell
