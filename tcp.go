@@ -11,7 +11,7 @@ import (
 type TCPPingOpts struct {
 	// PingTimeout is the timeout for a ping request.
 	PingTimeout time.Duration
-	// PingCount is the number of requests that will be sent to compute the ping quality of a host.
+	// PingCount counting requests for calculating ping quality of host.
 	PingCount int
 	// MaxConcurrency sets the maximum goroutine used.
 	MaxConcurrency int

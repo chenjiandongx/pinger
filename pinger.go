@@ -39,40 +39,40 @@ type history struct {
 	mtx      sync.RWMutex
 }
 
-func (s *history) addResult(rtt time.Duration, err error) {
-	s.mtx.Lock()
+func (h *history) addResult(rtt time.Duration, err error) {
+	h.mtx.Lock()
 	if err != nil {
-		s.lost++
+		h.lost++
 	} else {
-		s.results[s.received%len(s.results)] = rtt
-		s.received++
+		h.results[h.received%len(h.results)] = rtt
+		h.received++
 	}
-	s.mtx.Unlock()
+	h.mtx.Unlock()
 }
 
-func (s *history) compute() (st PingStat) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+func (h *history) compute() (st PingStat) {
+	h.mtx.RLock()
+	defer h.mtx.RUnlock()
 
-	if s.received == 0 {
-		if s.lost > 0 {
+	if h.received == 0 {
+		if h.lost > 0 {
 			st.PktLoss = 1.0
 		}
 		return
 	}
 
-	collection := s.results[:]
-	st.PktSent = s.received + s.lost
-	size := len(s.results)
-	st.Last = collection[(s.received-1)%size]
+	collection := h.results[:]
+	st.PktSent = h.received + h.lost
+	size := len(h.results)
+	st.Last = collection[(h.received-1)%size]
 
 	// we don't yet have filled the buffer
-	if s.received <= size {
-		collection = s.results[:s.received]
-		size = s.received
+	if h.received <= size {
+		collection = h.results[:h.received]
+		size = h.received
 	}
 
-	st.PktLoss = float64(s.lost) / float64(s.received+s.lost)
+	st.PktLoss = float64(h.lost) / float64(h.received+h.lost)
 	st.Best, st.Worst = collection[0], collection[0]
 
 	total := time.Duration(0)
