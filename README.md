@@ -13,7 +13,7 @@ Pinger is a library used to evaluate the quality of services in ICMP/TCP/HTTP pr
 ### 🔰 Installation
 
 ```shell
-$ go get -u github.com/chenjiangdongx/pinger
+$ go get -u github.com/chenjiandongx/pinger
 ```
 
 ### 📝 Usage
