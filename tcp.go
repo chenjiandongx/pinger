@@ -36,7 +36,12 @@ func (opts *TCPPingOpts) ping(dest *destination, args ...interface{}) {
 		logrus.Warnf("ping host(%s) error: %+v", dest.host, err)
 		return
 	}
-	defer conn.Close()
+
+	if err = conn.Close(); err != nil {
+		dest.addResult(zeroDur, err)
+		logrus.Warnf("close tcp connection(%s) error: %+v", dest.host, err)
+		return
+	}
 	dest.addResult(time.Since(now), nil)
 }
 
