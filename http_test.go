@@ -8,7 +8,7 @@ import (
 )
 
 func TestValidHTTPPing(t *testing.T) {
-	hosts := []string{"http://baidu.com", "https://baidu.com", "http://39.156.69.79"}
+	hosts := []string{"http://huya.com", "https://youtube.com", "http://39.156.69.79"}
 	stats, err := HTTPPing(nil, hosts...)
 	assert.NoError(t, err)
 	assert.Len(t, stats, len(hosts))
