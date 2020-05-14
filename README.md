@@ -66,7 +66,7 @@ opts.Interval = func() time.Duration { return 60 * time.Millisecond }
 **PingCount / MaxConcurrency**
 ```golang
 opts := pinger.DefaultICMPPingOpts
-// network is always unstable thus we need more ping-ops to evaluate the network quality on the whole.
+// network is unstable thus we need more ping-ops to evaluate the network quality overall.
 opts.PingCount = 20
 // set the maximum concurreny, goroutine is cheap, but not free :)
 opts.MaxConcurrency = 5
