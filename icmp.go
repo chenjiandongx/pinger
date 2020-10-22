@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/digineo/go-ping"
-	"github.com/sirupsen/logrus"
 )
 
 // ICMPPingOpts is the option set for the ICMP Ping.
@@ -17,9 +16,10 @@ type ICMPPingOpts struct {
 	PingCount int
 	// MaxConcurrency sets the maximum goroutine used.
 	MaxConcurrency int
+	// FailOver is the per host maximum failed allowed.
+	FailOver int
 	// Interval returns a time.Duration as the delay.
 	Interval func() time.Duration
-
 	// ResolverTimeout is the timeout for the net.ResolveIPAddr request.
 	ResolverTimeout time.Duration
 	// Bind4 is the ipv4 bind to start a raw socket.
@@ -33,19 +33,18 @@ var DefaultICMPPingOpts = &ICMPPingOpts{
 	PingTimeout:     3 * time.Second,
 	PingCount:       10,
 	MaxConcurrency:  10,
+	FailOver:        5,
 	Interval:        func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
 	Bind4:           "0.0.0.0",
 	ResolverTimeout: 1500 * time.Millisecond,
 	PayloadSize:     56,
 }
 
-func (opts *ICMPPingOpts) ping(dest *destination, args ...interface{}) {
+func (opts *ICMPPingOpts) ping(dest *destination, args ...interface{}) error {
 	pinger := args[0].(*ping.Pinger)
 	rtt, err := pinger.Ping(dest.remote, opts.PingTimeout)
-	if err != nil {
-		logrus.Warnf("ping host(%s) error: %+v", dest.host, err)
-	}
 	dest.addResult(rtt, err)
+	return err
 }
 
 func ICMPPing(opts *ICMPPingOpts, hosts ...string) ([]PingStat, error) {
@@ -69,7 +68,6 @@ func ICMPPing(opts *ICMPPingOpts, hosts ...string) ([]PingStat, error) {
 	for _, host := range hosts {
 		remotes, err := resolve(host, opts.ResolverTimeout)
 		if err != nil {
-			logrus.Warnf("resolve address error: %+v\n", err)
 			continue
 		}
 
@@ -90,6 +88,7 @@ func ICMPPing(opts *ICMPPingOpts, hosts ...string) ([]PingStat, error) {
 
 	stats := calculateStats(calcStatsReq{
 		maxConcurrency: opts.MaxConcurrency,
+		failover:       opts.FailOver,
 		pingCount:      opts.PingCount,
 		ping:           opts.ping,
 		setInterval:    opts.Interval,

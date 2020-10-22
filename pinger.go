@@ -27,6 +27,7 @@ type PingStat struct {
 type destination struct {
 	host   string
 	remote *net.IPAddr
+	fail   int
 	*history
 }
 
@@ -113,9 +114,10 @@ func sortHosts(stats map[string]PingStat, hosts ...string) []PingStat {
 
 type calcStatsReq struct {
 	maxConcurrency int
+	failover       int
 	pingCount      int
 	dest           []*destination
-	ping           func(d *destination, args ...interface{})
+	ping           func(d *destination, args ...interface{}) error
 	setInterval    func() time.Duration
 	args           interface{}
 }
@@ -127,28 +129,34 @@ func calculateStats(csr calcStatsReq) map[string]PingStat {
 	wg := sync.WaitGroup{}
 	sema := make(chan struct{}, csr.maxConcurrency)
 
-	for c := 0; c < csr.pingCount; c++ {
-		for _, dest := range csr.dest {
-			sema <- struct{}{}
-			wg.Add(1)
-			go func(d *destination) {
-				defer func() {
-					wg.Done()
-					<-sema
-				}()
+	for _, dest := range csr.dest {
+		wg.Add(1)
+		go func(d *destination) {
+			defer wg.Done()
 
-				csr.ping(d, csr.args)
+			for c := 0; c < csr.pingCount; c++ {
+				sema <- struct{}{}
+
+				if err := csr.ping(d, csr.args); err != nil {
+					d.fail++
+				}
 
 				mux.Lock()
 				stat := d.compute()
 				stat.Host = d.host
 				stats[d.host] = stat
 				mux.Unlock()
-			}(dest)
-		}
-		wg.Wait()
-		time.Sleep(csr.setInterval())
+
+				<-sema
+
+				if d.fail >= csr.failover {
+					return
+				}
+				time.Sleep(csr.setInterval())
+			}
+		}(dest)
 	}
+	wg.Wait()
 
 	return stats
 }

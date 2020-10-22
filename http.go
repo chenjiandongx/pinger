@@ -8,8 +8,6 @@ import (
 	"net"
 	"net/http"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 // HTTPPingOpts is the option set for the HTTP Ping.
@@ -20,9 +18,10 @@ type HTTPPingOpts struct {
 	PingCount int
 	// MaxConcurrency sets the maximum goroutine used.
 	MaxConcurrency int
+	// FailOver is the per host maximum failed allowed.
+	FailOver int
 	// Interval returns a time.Duration as the delay.
 	Interval func() time.Duration
-
 	// Method represents the HTTP Method(GET/POST/PUT/...).
 	Method string
 	// Body represents the HTTP Request body.
@@ -40,19 +39,16 @@ var DefaultHTTPPingOpts = &HTTPPingOpts{
 	Headers:        nil,
 	Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
 	MaxConcurrency: 10,
+	FailOver:       5,
 }
 
-func (opts *HTTPPingOpts) ping(dest *destination, args ...interface{}) {
+func (opts *HTTPPingOpts) ping(dest *destination, args ...interface{}) error {
 	client := args[0].(*http.Client)
-	check := func(err error) {
-		logrus.Warnf("ping host(%s) error: %+v", dest.host, err)
-		dest.addResult(zeroDur, err)
-	}
 
 	req, err := http.NewRequest(opts.Method, dest.host, opts.Body)
 	if err != nil {
-		check(err)
-		return
+		dest.addResult(zeroDur, err)
+		return err
 	}
 
 	if opts.Headers != nil {
@@ -67,16 +63,17 @@ func (opts *HTTPPingOpts) ping(dest *destination, args ...interface{}) {
 	now := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		check(err)
-		return
+		dest.addResult(zeroDur, err)
+		return err
 	}
 
 	if _, err = io.Copy(ioutil.Discard, resp.Body); err != nil {
-		check(err)
-		return
+		dest.addResult(zeroDur, err)
+		return err
 	}
 	defer resp.Body.Close()
 	dest.addResult(time.Since(now), nil)
+	return nil
 }
 
 func HTTPPing(opts *HTTPPingOpts, hosts ...string) ([]PingStat, error) {
@@ -111,6 +108,7 @@ func HTTPPing(opts *HTTPPingOpts, hosts ...string) ([]PingStat, error) {
 
 	stats := calculateStats(calcStatsReq{
 		maxConcurrency: opts.MaxConcurrency,
+		failover:       opts.FailOver,
 		pingCount:      opts.PingCount,
 		ping:           opts.ping,
 		setInterval:    opts.Interval,
