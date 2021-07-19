@@ -4,7 +4,7 @@
 
 Pinger is a library used to evaluate the quality of services in ICMP/TCP/HTTP protocol.
 
-What's worth pointing out is that the `ping` here is not only represents the standard **IMCP Protocol**, but also the **TCP/HTTP/HTTPS**. It's the more general sense here as an approach to detecte the network qualtily.
+What's worth pointing out is that `ping` here means not only the standard **IMCP Protocol**, but also **TCP/HTTP/HTTPS**. It's the more general sense here as an approach to detect the network quality.
 
 [![GoDoc](https://godoc.org/github.com/chenjiandongx/pinger?status.svg)](https://godoc.org/github.com/chenjiandongx/pinger)
 [![Travis](https://travis-ci.org/chenjiandongx/pinger.svg?branch=master)](https://travis-ci.org/chenjiandongx/pinger)
@@ -84,7 +84,7 @@ opts.Headers = map[string]string{"token": "my-token", "who": "me"}
 opts.Method = http.MethodPost
 ```
 
-*For more information, please refer to [godoc](https://godoc.org/github.com/chenjiandongx/pinger).*
+*For more information, please refer to [the documentation](https://godoc.org/github.com/chenjiandongx/pinger).*
 
 ### 📃 License
 
