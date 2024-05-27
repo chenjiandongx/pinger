@@ -4,7 +4,7 @@
 
 Pinger is a library used to evaluate the quality of services in ICMP/TCP/HTTP protocol.
 
-What's worth pointing out is that `ping` here means not only the standard **IMCP Protocol**, but also **TCP/HTTP/HTTPS**. It's the more general sense here as an approach to detect the network quality.
+What's worth pointing out is that `ping` here means not only the standard **ICMP Protocol**, but also **TCP/HTTP/HTTPS**. It's the more general sense here as an approach to detect the network quality.
 
 [![GoDoc](https://godoc.org/github.com/chenjiandongx/pinger?status.svg)](https://godoc.org/github.com/chenjiandongx/pinger)
 [![Travis](https://travis-ci.org/chenjiandongx/pinger.svg?branch=master)](https://travis-ci.org/chenjiandongx/pinger)
@@ -57,7 +57,7 @@ func main() {
 
 **PingTimeout / Interval**
 ```golang
-opts := pinger.DefaultICMPPingOpts
+opts := pinger.DefaultICMPPingOpts()
 opts.PingTimeout = 50 * time.Millisecond
 // sleep 60 mills after a request every time.
 opts.Interval = func() time.Duration { return 60 * time.Millisecond }
@@ -65,10 +65,10 @@ opts.Interval = func() time.Duration { return 60 * time.Millisecond }
 
 **PingCount / MaxConcurrency / FailOver**
 ```golang
-opts := pinger.DefaultICMPPingOpts
+opts := pinger.DefaultICMPPingOpts()
 // network is unstable thus we need more ping-ops to evaluate the network quality overall.
 opts.PingCount = 20
-// set the maximum concurreny, goroutine is cheap, but not free :)
+// set the maximum concurrency, goroutine is cheap, but not free :)
 opts.MaxConcurrency = 5
 // set per host maximum failed allowed
 opts.FailOver = 5
@@ -77,8 +77,8 @@ opts.FailOver = 5
 **Headers / Method**
 ```golang
 // in http/https case, there are more options could be used.
-opts := pinger.DefaultHTTPPingOpts
-// HTTP headers, something speical for authentication or anything else.
+opts := pinger.DefaultHTTPPingOpts()
+// HTTP headers, something special for authentication or anything else.
 opts.Headers = map[string]string{"token": "my-token", "who": "me"}
 // HTTP Method, feel free to use any standard HTTP methods you need.
 opts.Method = http.MethodPost

@@ -21,12 +21,14 @@ type TCPPingOpts struct {
 }
 
 // DefaultTCPPingOpts will be used if PingOpts is nil with the TCPPing function.
-var DefaultTCPPingOpts = &TCPPingOpts{
-	PingTimeout:    3 * time.Second,
-	PingCount:      10,
-	Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
-	MaxConcurrency: 10,
-	FailOver:       5,
+func DefaultTCPPingOpts() *TCPPingOpts {
+	return &TCPPingOpts{
+		PingTimeout:    3 * time.Second,
+		PingCount:      10,
+		Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
+		MaxConcurrency: 10,
+		FailOver:       5,
+	}
 }
 
 func (opts *TCPPingOpts) ping(dest *destination, args ...interface{}) error {
@@ -47,7 +49,7 @@ func (opts *TCPPingOpts) ping(dest *destination, args ...interface{}) error {
 
 func TCPPing(opts *TCPPingOpts, hosts ...string) ([]PingStat, error) {
 	if opts == nil {
-		opts = DefaultTCPPingOpts
+		opts = DefaultTCPPingOpts()
 	}
 
 	dests := make([]*destination, 0)

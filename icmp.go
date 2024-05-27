@@ -29,15 +29,17 @@ type ICMPPingOpts struct {
 }
 
 // DefaultICMPPingOpts will be used if PingOpts is nil with the ICMPPing function.
-var DefaultICMPPingOpts = &ICMPPingOpts{
-	PingTimeout:     3 * time.Second,
-	PingCount:       10,
-	MaxConcurrency:  10,
-	FailOver:        5,
-	Interval:        func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
-	Bind4:           "0.0.0.0",
-	ResolverTimeout: 1500 * time.Millisecond,
-	PayloadSize:     56,
+func DefaultICMPPingOpts() *ICMPPingOpts {
+	return &ICMPPingOpts{
+		PingTimeout:     3 * time.Second,
+		PingCount:       10,
+		MaxConcurrency:  10,
+		FailOver:        5,
+		Interval:        func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
+		Bind4:           "0.0.0.0",
+		ResolverTimeout: 1500 * time.Millisecond,
+		PayloadSize:     56,
+	}
 }
 
 func (opts *ICMPPingOpts) ping(dest *destination, args ...interface{}) error {
@@ -49,7 +51,7 @@ func (opts *ICMPPingOpts) ping(dest *destination, args ...interface{}) error {
 
 func ICMPPing(opts *ICMPPingOpts, hosts ...string) ([]PingStat, error) {
 	if opts == nil {
-		opts = DefaultICMPPingOpts
+		opts = DefaultICMPPingOpts()
 	}
 
 	pinger := &ping.Pinger{}

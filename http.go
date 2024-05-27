@@ -31,15 +31,17 @@ type HTTPPingOpts struct {
 }
 
 // DefaultHTTPPingOpts will be used if PingOpts is nil with the HTTPPing function.
-var DefaultHTTPPingOpts = &HTTPPingOpts{
-	PingTimeout:    3 * time.Second,
-	PingCount:      10,
-	Method:         http.MethodGet,
-	Body:           nil,
-	Headers:        nil,
-	Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
-	MaxConcurrency: 10,
-	FailOver:       5,
+func DefaultHTTPPingOpts() *HTTPPingOpts {
+	return &HTTPPingOpts{
+		PingTimeout:    3 * time.Second,
+		PingCount:      10,
+		Method:         http.MethodGet,
+		Body:           nil,
+		Headers:        nil,
+		Interval:       func() time.Duration { return time.Duration(rand.Int63n(200)) * time.Millisecond },
+		MaxConcurrency: 10,
+		FailOver:       5,
+	}
 }
 
 func (opts *HTTPPingOpts) ping(dest *destination, args ...interface{}) error {
@@ -78,7 +80,7 @@ func (opts *HTTPPingOpts) ping(dest *destination, args ...interface{}) error {
 
 func HTTPPing(opts *HTTPPingOpts, hosts ...string) ([]PingStat, error) {
 	if opts == nil {
-		opts = DefaultHTTPPingOpts
+		opts = DefaultHTTPPingOpts()
 	}
 
 	var transport = &http.Transport{
